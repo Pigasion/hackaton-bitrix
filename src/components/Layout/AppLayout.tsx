@@ -22,7 +22,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const menuItems: MenuProps['items'] = [
     { key: '/', icon: <DashboardOutlined />, label: 'Дашборд' },
     { key: '/clients', icon: <TeamOutlined />, label: 'Клиенты' },
-    { key: '/chats', icon: <MessageOutlined />, label: 'Чаты', badge: 3 },
+    { key: '/chats', icon: <MessageOutlined />, label: 'Чаты' },
     { key: '/internal-chat', icon: <ToolOutlined />, label: 'Тех. чат' },
     { key: '/onboarding', icon: <BookOutlined />, label: 'Онбординг' },
     { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
@@ -35,7 +35,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* 🔹 Sidebar — ФИКСИРОВАННЫЙ */}
+      {/* Sidebar — фиксированный */}
       <Sider
         width={250}
         theme="dark"
@@ -51,7 +51,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           zIndex: 1000,
         }}
       >
-        {/* Логотип (без иконки домика) */}
+        {/* Логотип */}
         <div
           onClick={() => navigate('/')}
           style={{
@@ -82,7 +82,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
         />
       </Sider>
 
-      {/* 🔹 Основной контейнер */}
+      {/* Основной контейнер */}
       <Layout
         style={{
           marginLeft: 250,
@@ -91,7 +91,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           minHeight: '100vh',
         }}
       >
-        {/* 🔹 Header — ФИКСИРОВАННЫЙ (не скроллится) */}
+        {/* Header — фиксированный */}
         <header
           style={{
             height: '64px',
@@ -127,7 +127,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </Space>
         </header>
 
-        {/* 🔹 Content — СКРОЛЛИТСЯ ТОЛЬКО ЭТА ОБЛАСТЬ */}
+        {/* Content — скроллится только эта область */}
         <Content
           style={{
             flex: 1,
