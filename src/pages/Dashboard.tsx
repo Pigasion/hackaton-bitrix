@@ -9,7 +9,8 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
-import { AppCard, PageHeader, StatusBadge } from '@/components/UI';
+import { AppButton, AppCard, PageHeader, StatusBadge } from '@/components/UI';
+import { useManagerStore } from '../store/useManagerStore.ts';
 
 const { Text } = Typography;
 
@@ -49,6 +50,8 @@ const activityIcons: Record<string, React.ReactNode> = {
 };
 
 function Dashboard() {
+  const { addExperience, completeOnboardingStep } = useManagerStore();
+
   const orderColumns = [
     {
       title: 'Клиент',
@@ -76,13 +79,13 @@ function Dashboard() {
   ];
 
   return (
+
     <div>
       <PageHeader
         title="📊 Дашборд"
         description="Обзор ключевых показателей и активности"
       />
 
-      {/* Метрики */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         {metricsData.map((metric, index) => (
           <Col xs={24} sm={12} lg={6} key={index}>
