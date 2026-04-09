@@ -90,11 +90,60 @@ class BitrixClient:
         """
         params = {"fields": data}
         response = await self._call_api("crm.lead.add", params)
-        
+
         return int(response.get("result"))
+
+    async def execute_batch(self, cmds: dict[str, str]) -> dict:
+        """
+        Executes a Bitrix24 batch request (up to 50 commands per call).
+        Uses batch.json endpoint. Returns the full result dict.
+
+        Args:
+            cmds: A dict of {alias: "method?param=value&..."} commands.
+                  Supports $result[alias] forward-references for chaining.
+        """
+        params = {"halt": 0, "cmd": cmds}
+        response = await self._call_api("batch", params)
+        return response.get("result", {})
+
+    async def create_lead_with_comment(
+        self, lead_data: dict, comment_text: str
+    ) -> dict:
+        """
+        Atomically creates a lead and attaches a comment to it in a single
+        Bitrix24 batch HTTP request.
+
+        Uses Bitrix24 batch chaining syntax: $result[cmd_lead] to reference
+        the newly created lead ID when creating the timeline comment.
+
+        Returns the batch result dict with keys 'cmd_lead' and 'cmd_comment'.
+        """
+        cmds = {
+            # Step 1: create the lead; result will be the new lead ID
+            "cmd_lead": (
+                "crm.lead.add?"
+                + "&".join(
+                    f"fields[{k}]={v}" for k, v in lead_data.items()
+                )
+            ),
+            # Step 2: attach a comment to the just-created lead using $result chaining
+            "cmd_comment": (
+                "crm.timeline.comment.add?"
+                "fields[ENTITY_TYPE]=lead"
+                "&fields[ENTITY_ID]=$result[cmd_lead]"
+                f"&fields[COMMENT]={comment_text}"
+            ),
+        }
+        result = await self.execute_batch(cmds)
+        logger.info(
+            "Bitrix24 batch lead+comment created. "
+            f"Lead ID: {result.get('result', {}).get('cmd_lead')}"
+        )
+        return result
 
     async def close(self):
         await self.client.aclose()
+
 
 # Global instance for use in dependency injection or directly
 bitrix_client = BitrixClient()

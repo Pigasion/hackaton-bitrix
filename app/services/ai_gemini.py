@@ -13,13 +13,14 @@ async def process_audio_call(file_path: str) -> dict:
     """
     model = genai.GenerativeModel("gemini-1.5-flash")
     
-    # upload_file is a blocking call in google-generativeai==0.4.1
-    audio_file = await asyncio.to_thread(genai.upload_file, path=file_path)
+    # Use native methods of google-generativeai. Since upload_file might still be sync,
+    # we use it directly as requested by removing asyncio.to_thread.
+    audio_file = genai.upload_file(path=file_path)
     
     # Wait for file to be active
     while audio_file.state.name == "PROCESSING":
         await asyncio.sleep(2)
-        audio_file = await asyncio.to_thread(genai.get_file, audio_file.name)
+        audio_file = genai.get_file(audio_file.name)
         
     if audio_file.state.name == "FAILED":
         raise ValueError(f"Gemini failed to process audio: {audio_file.error.message}")

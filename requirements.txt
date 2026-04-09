@@ -1,22 +1,23 @@
 # Web framework & Server
-fastapi==0.110.1
-uvicorn[standard]==0.29.0
-python-multipart==0.0.9  # Для обработки загрузки MP3 файлов
+fastapi==0.135.3
+uvicorn[standard]==0.44.0
+python-multipart==0.0.24  # Для обработки загрузки MP3 файлов
+aiofiles==25.1.0  # Async file I/O (audio upload)
 
 # Database (PostgreSQL + async)
-sqlalchemy==2.0.29
-asyncpg==0.29.0
-alembic==1.13.1  # Для миграций БД
+sqlalchemy==2.0.49
+asyncpg==0.31.0
+alembic==1.18.4  # Для миграций БД
 
 # Data validation & Settings
-pydantic==2.7.0
-pydantic-settings==2.2.1
+pydantic==2.12.5
+pydantic-settings==2.13.1
 
 # HTTP Client (Async, for Bitrix24 & external APIs)
-httpx==0.27.0
+httpx==0.28.1
 
 # AI Integration
-google-generativeai==0.4.1  # Gemini API
+google-generativeai==0.8.6  # Gemini API
 
 # Telegram Bot
-aiogram==3.4.1
+aiogram==3.27.0
