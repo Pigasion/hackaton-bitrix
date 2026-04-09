@@ -1,70 +1,45 @@
 // src/App.tsx
-import { ConfigProvider } from 'antd';
-import ruRU from 'antd/locale/ru_RU';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// 🔹 Импорт Layout
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/Layout/AppLayout';
-
-// 🔹 Импорт приватных страниц (с меню)
+import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
 import Chats from '@/pages/Chats';
 import InternalChat from '@/pages/InternalChat';
 import Onboarding from '@/pages/Onboarding';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
 import Faq from '@/pages/Faq';
+import NotFound from '@/pages/NotFound';
 
-// 🔹 Импорт публичных страниц (без меню)
-import Registration from '@/pages/Registration';
-import Login from '@/pages/Login';
-
-// 🔹 React Query клиент
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 1000 * 60 * 5,
-    },
-  },
-});
+// 🔹 Защита роутов
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ConfigProvider
-        locale={ruRU}
-        theme={{
-          token: {
-            colorPrimary: '#0052cc',
-            borderRadius: 8,
-          },
-        }}
-      >
-        <BrowserRouter>
-          <Routes>
-            {/* 🔹 ПУБЛИЧНЫЕ РОУТЫ (без AppLayout) */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Registration />} />
+    <Routes>
+      {/* 1. Публичный вход */}
+      <Route path="/login" element={<Login />} />
 
-            {/* 🔹 ПРИВАТНЫЕ РОУТЫ (с AppLayout) */}
-            <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-            <Route path="/clients" element={<AppLayout><Clients /></AppLayout>} />
-            <Route path="/chats" element={<AppLayout><Chats /></AppLayout>} />
-            <Route path="/internal-chat" element={<AppLayout><InternalChat /></AppLayout>} />
-            <Route path="/onboarding" element={<AppLayout><Onboarding /></AppLayout>} />
-            <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-            <Route path="/faq" element={<Faq />} />
+      {/* 2. Защищённые страницы (конкретные пути) */}
+      <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/clients" element={<ProtectedRoute><AppLayout><Clients /></AppLayout></ProtectedRoute>} />
+      <Route path="/chats" element={<ProtectedRoute><AppLayout><Chats /></AppLayout></ProtectedRoute>} />
+      <Route path="/internal-chat" element={<ProtectedRoute><AppLayout><InternalChat /></AppLayout></ProtectedRoute>} />
+      <Route path="/onboarding" element={<ProtectedRoute><AppLayout><Onboarding /></AppLayout></ProtectedRoute>} />
+      <Route path="/faq" element={<ProtectedRoute><AppLayout><Faq /></AppLayout></ProtectedRoute>} />
 
-            {/* 🔹 404 — ПОСЛЕДНИЙ */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </ConfigProvider>
-    </QueryClientProvider>
+      {/* 3. 404 — СТРОГО ПОСЛЕДНИЙ, без защиты (чтобы ловил любые пути) */}
+      <Route path="*" element={
+        <AppLayout>
+          <NotFound />
+        </AppLayout>
+      } />
+    </Routes>
   );
 }
 

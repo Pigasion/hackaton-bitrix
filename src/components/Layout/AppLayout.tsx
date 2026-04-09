@@ -22,6 +22,17 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleLogout = () => {
+    // Очищаем данные авторизации
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+
+    // Перенаправляем на страницу входа
+    navigate('/login');
+  };
+
   const menuItems: MenuProps['items'] = [
     { key: '/', icon: <DashboardOutlined />, label: 'Дашборд' },
     { key: '/clients', icon: <TeamOutlined />, label: 'Клиенты' },
@@ -34,7 +45,12 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   const profileMenu: MenuProps['items'] = [
     { key: 'profile', label: 'Профиль' },
-    { key: 'logout', label: 'Выйти', danger: true },
+    {
+      key: 'logout',
+      label: 'Выйти',
+      danger: true,
+      onClick: handleLogout // ← Добавляем обработчик
+    },
   ];
 
   return (

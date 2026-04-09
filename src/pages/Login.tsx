@@ -1,61 +1,173 @@
 // src/pages/Login.tsx
 import { useState } from 'react';
-import { Form, Input, Button, Card, Checkbox, Typography, Alert, Divider, Space, Tooltip } from 'antd';
-import { MailOutlined, LockOutlined, EyeOutlined, EyeInvisibleOutlined, QuestionCircleOutlined, WhatsAppOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { AppButton, AppInput } from '@/components/UI';
+import { Form, Input, Button, Card, Typography, Space, Alert, message } from 'antd';
+import { KeyOutlined, LoginOutlined, RobotOutlined } from '@ant-design/icons';
+import { AppButton } from '@/components/UI';
 
-const { Title, Text, Link } = Typography;
+const { Title, Text } = Typography;
+
+interface LoginFormValues {
+  token: string;
+}
 
 function Login() {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [api, contextHolder] = message.useMessage();
 
-  const handleLogin = async (values: any) => {
-    setIsLoading(true);
-    setLoginError(null);
+  const onFinish = async (values: LoginFormValues) => {
+    setLoading(true);
+    setError('');
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate('/');
-    } catch (error) {
-      setLoginError('Неверный email или пароль.');
+      // 🔹 Здесь будет проверка токена в Битриксе
+      // Для демо принимаем любой токен длиной >= 10 символов
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (values.token.length < 10) {
+        throw new Error('Неверный токен. Минимальная длина: 10 символов');
+      }
+
+      // ✅ Успешная авторизация
+      localStorage.setItem('authToken', values.token);
+      localStorage.setItem('isAuthenticated', 'true');
+
+      api.success({
+        content: '✅ Авторизация успешна!',
+        duration: 2,
+      });
+
+      // Перенаправление на главную
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+
+    } catch (err: any) {
+      setError(err.message || 'Ошибка авторизации');
+      api.error({
+        content: '❌ ' + (err.message || 'Ошибка авторизации'),
+        duration: 3,
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '24px' }}>
-      <Card style={{ width: '100%', maxWidth: 480, borderRadius: '16px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <Title level={2} style={{ margin: 0, color: '#0052cc' }}>🚀 Flex-N-Roll PWA</Title>
-          <Text type="secondary">Вход в систему для менеджеров</Text>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px',
+    }}>
+      {contextHolder}
+
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 450,
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        }}
+        bodyStyle={{ padding: '40px' }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: 80,
+            height: 80,
+            margin: '0 auto 16px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 40,
+          }}>
+            <RobotOutlined style={{ color: '#fff' }} />
+          </div>
+          <Title level={3} style={{ marginBottom: 8 }}>
+            PolyRouter
+          </Title>
+          <Text type="secondary">
+            Единая система коммуникаций
+          </Text>
         </div>
 
-        {loginError && <Alert message="Ошибка входа" description={loginError} type="error" showIcon style={{ marginBottom: '24px' }} closable onClose={() => setLoginError(null)} />}
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: '24px' }}
+            closable
+            onClose={() => setError('')}
+          />
+        )}
 
-        <Form form={form} layout="vertical" onFinish={handleLogin} autoComplete="off" initialValues={{ remember: true }}>
-          <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }, { type: 'email', message: 'Некорректный email' }]}><AppInput prefix={<MailOutlined />} size="large" disabled={isLoading} /></Form.Item>
-          <Form.Item label="Пароль" name="password" rules={[{ required: true, message: 'Введите пароль' }]}><Input.Password prefix={<LockOutlined />} size="large" visibilityRender={(visible) => visible ? <EyeOutlined /> : <EyeInvisibleOutlined />} disabled={isLoading} /></Form.Item>
+        <Form
+          name="login"
+          layout="vertical"
+          onFinish={onFinish}
+          requiredMark={false}
+        >
+          <Form.Item
+            name="token"
+            label={<Text strong>Токен доступа</Text>}
+            rules={[
+              { required: true, message: 'Введите токен' },
+              { min: 10, message: 'Минимальная длина токена: 10 символов' },
+            ]}
+          >
+            <Input.Password
+              prefix={<KeyOutlined style={{ color: '#999' }} />}
+              placeholder="Введите ваш токен"
+              size="large"
+              style={{ borderRadius: '8px' }}
+            />
+          </Form.Item>
 
-          <Form.Item><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Form.Item name="remember" valuePropName="checked" noStyle><Checkbox disabled={isLoading}>Запомнить меня</Checkbox></Form.Item><Link onClick={() => alert('Функция восстановления в разработке')}>Забыли пароль?</Link></div></Form.Item>
-
-          <Form.Item><AppButton htmlType="submit" size="large" block loading={isLoading} style={{ height: '48px', fontSize: '16px' }}>{isLoading ? 'Вход...' : 'Войти'}</AppButton></Form.Item>
-
-          <Divider />
-          <Space direction="vertical" size="small" style={{ width: '100%', textAlign: 'center' }}>
-            <Text type="secondary">Нет аккаунта? <Link onClick={() => navigate('/register')}>Зарегистрироваться</Link></Text>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Нужна помощь? <Tooltip title="Написать в поддержку"><Link><WhatsAppOutlined style={{ color: '#25D366', marginRight: 4 }} />WhatsApp</Link></Tooltip> или <Tooltip title="Позвонить"><Link><PhoneOutlined style={{ color: '#0052cc', marginRight: 4 }} />+7 (495) 000-00-00</Link></Tooltip></Text>
-          </Space>
-
-          <Divider style={{ margin: '24px 0 16px' }} />
-          <div style={{ textAlign: 'center' }}><Text type="secondary" style={{ fontSize: '11px' }}>Нажимая «Войти», вы соглашаетесь с условиями использования и политикой конфиденциальности<br />Обработка персональных данных осуществляется в соответствии с 152-ФЗ</Text></div>
+          <Form.Item style={{ marginBottom: '16px' }}>
+            <AppButton
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={loading}
+              icon={<LoginOutlined />}
+              block
+              style={{ borderRadius: '8px' }}
+            >
+              Войти в систему
+            </AppButton>
+          </Form.Item>
         </Form>
 
-        <Alert message="🧪 Демо-режим" description={<Space direction="vertical" size={0}><Text style={{ fontSize: '12px' }}><strong>Email:</strong> demo@polyrouter.ru</Text><Text style={{ fontSize: '12px' }}><strong>Пароль:</strong> Demo123!</Text></Space>} type="info" showIcon style={{ marginTop: '16px' }} icon={<QuestionCircleOutlined />} />
+        <div style={{
+          marginTop: '24px',
+          padding: '16px',
+          background: '#f6ffed',
+          borderRadius: '8px',
+          border: '1px solid #b7eb8f',
+        }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            💡 <strong>Для демо:</strong> введите любой токен длиной от 10 символов.<br />
+            В продакшене токен будет проверяться через API Битрикс24.
+          </Text>
+        </div>
+
+        <div style={{
+          marginTop: '24px',
+          textAlign: 'center',
+          padding: '16px',
+          borderTop: '1px solid #f0f0f0',
+        }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            © 2026 PolyRouter. Все права защищены.
+          </Text>
+        </div>
       </Card>
     </div>
   );
