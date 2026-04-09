@@ -70,7 +70,7 @@ export default defineConfig({
 
   // 🔹 Оптимизация сборки
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
     sourcemap: true, // Для отладки
     rollupOptions: {
       output: {
