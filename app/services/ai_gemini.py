@@ -40,9 +40,6 @@ async def process_audio_call(file_path: str) -> dict:
         generation_config=generation_config
     )
     
-    # Cleanup file from Gemini File API (optional but good practice)
-    # await asyncio.to_thread(genai.delete_file, audio_file.name)
-    
     return json.loads(response.text)
 
 async def summarize_chat(messages: list[str]) -> str:

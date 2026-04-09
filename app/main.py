@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.core.database import engine, Base
 from app.core.config import settings
-from bot.main import bot
+from bot.main import tg_bot
 
 # Import models so they are registered with Base metadata before create_all
 import app.models
@@ -16,12 +16,12 @@ async def lifespan(app: FastAPI):
         
     # Set Telegram Webhook
     webhook_url = f"{settings.WEBHOOK_DOMAIN.rstrip('/')}/api/v1/webhooks/tg-webhook/"
-    await bot.set_webhook(url=webhook_url)
+    await tg_bot.set_webhook(url=webhook_url)
 
     yield
     
     # Shutdown event: dispose engine and delete webhook
-    await bot.delete_webhook()
+    await tg_bot.delete_webhook()
     await engine.dispose()
 
 app = FastAPI(

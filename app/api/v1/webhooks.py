@@ -13,7 +13,7 @@ from app.services.routing import route_incoming_request
 from app.services.ai_gemini import generate_manager_hint
 from app.api.v1.ws import manager as ws_manager
 from aiogram import types
-from bot.main import bot, dp
+from bot.main import tg_bot, dp
 
 logger = logging.getLogger(__name__)
 
@@ -162,5 +162,5 @@ async def tg_webhook(update: dict):
     Webhook endpoint for receiving Telegram bot updates.
     """
     telegram_update = types.Update(**update)
-    await dp.feed_update(bot=bot, update=telegram_update)
+    await dp.feed_update(bot=tg_bot, update=telegram_update)
     return {"status": "ok"}

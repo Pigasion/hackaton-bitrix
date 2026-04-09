@@ -9,6 +9,86 @@ from app.services.ai_gemini import is_technical_request
 
 logger = logging.getLogger(__name__)
 
+async def route_incoming_request(
+    session: AsyncSession,
+    phone: Optional[str] = None,
+    email: Optional[str] = None,
+    telegram_id: Optional[str] = None,
+    text: Optional[str] = None,
+    client_name: str = "Новый Клиент",
+) -> Tuple[Client, User, Optional[User]]:
+    """
+    Main entry point for smart routing of incoming messages/webhooks.
+    1. Search for client in local DB (by TG ID, Phone, or Email).
+    2. If not found, search in Bitrix24.
+    3. If found in Bitrix, create local client.
+    4. If not found anywhere, create local client as 'new' grade.
+    5. Assign optimal manager (Primary).
+    6. Check if technologist is needed.
+    """
+    client = None
+
+    # 1. Search Local DB
+    if telegram_id:
+        client = (await session.execute(select(Client).where(Client.telegram_id == telegram_id))).scalars().first()
+    
+    if not client and phone:
+        client = (await session.execute(select(Client).where(Client.phone == phone))).scalars().first()
+        
+    if not client and email:
+        client = (await session.execute(select(Client).where(Client.email == email))).scalars().first()
+
+    # 2. Search Bitrix24 if not in local DB
+    if not client:
+        identifier = phone or email
+        bitrix_contact = None
+        if identifier:
+            bitrix_contact = await bitrix_client.find_contact_by_phone_or_email(identifier)
+        
+        if bitrix_contact:
+            # Create local client from Bitrix data
+            client = Client(
+                name=f"{bitrix_contact.get('NAME', '')} {bitrix_contact.get('LAST_NAME', '')}".strip() or client_name,
+                phone=phone,
+                email=email,
+                bitrix_contact_id=int(bitrix_contact.get('ID')),
+                grade=ClientGrade.regular # Default to regular if from Bitrix
+            )
+            session.add(client)
+            await session.flush()
+        else:
+            # 3. Create fresh new client
+            client = Client(
+                name=client_name,
+                phone=phone,
+                email=email,
+                telegram_id=telegram_id,
+                grade=ClientGrade.new
+            )
+            session.add(client)
+            await session.flush()
+            
+            # Create Lead in Bitrix for new client
+            lead_data = {
+                "TITLE": f"Новый Лид: {client_name}",
+                "NAME": client_name,
+                "PHONE": phone or "",
+                "EMAIL": email or "",
+            }
+            try:
+                await bitrix_client.create_lead(lead_data)
+            except Exception as e:
+                logger.error(f"Failed to create Bitrix24 lead: {e}")
+
+    # 4. Assign Manager
+    primary_manager = await assign_manager_to_chat(client, session)
+
+    # 5. Check if Tech support is needed
+    technologist = await check_technical_involvement(session, text)
+
+    return client, primary_manager, technologist
+
+
 async def assign_manager_to_chat(client: Client, session: AsyncSession) -> User:
     """
     Assigns the optimal manager to a chat based on client grade.
@@ -46,7 +126,11 @@ async def assign_manager_to_chat(client: Client, session: AsyncSession) -> User:
 
     return manager
 
+
 async def check_technical_involvement(session: AsyncSession, text: Optional[str]) -> Optional[User]:
+    """
+    Checks if a request is technical and assigns a technologist if so.
+    """
     if not text:
         return None
         
