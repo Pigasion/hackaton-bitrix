@@ -15,6 +15,7 @@ import InternalChat from '@/pages/InternalChat';
 import Onboarding from '@/pages/Onboarding';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
+import Faq from '@/pages/Faq';
 
 // 🔹 Импорт публичных страниц (без меню)
 import Registration from '@/pages/Registration';
@@ -56,6 +57,7 @@ function App() {
             <Route path="/internal-chat" element={<AppLayout><InternalChat /></AppLayout>} />
             <Route path="/onboarding" element={<AppLayout><Onboarding /></AppLayout>} />
             <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+            <Route path="/faq" element={<Faq />} />
 
             {/* 🔹 404 — ПОСЛЕДНИЙ */}
             <Route path="*" element={<NotFound />} />

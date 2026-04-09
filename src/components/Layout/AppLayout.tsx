@@ -9,10 +9,12 @@ import {
   UserOutlined,
   BookOutlined,
   ToolOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { MenuProps } from 'antd';
 import { ManagerBadge } from '@/components/UI/ManagerBadge/ManagerBadge';
+
 
 const { Sider, Content } = Layout;
 
@@ -25,6 +27,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     { key: '/clients', icon: <TeamOutlined />, label: 'Клиенты' },
     { key: '/chats', icon: <MessageOutlined />, label: 'Чаты', badge: 3 },
     { key: '/internal-chat', icon: <ToolOutlined />, label: 'Технический чат' },
+    { key: '/faq', icon: <QuestionCircleOutlined />, label: 'Умный FAQ' },
     { key: '/onboarding', icon: <BookOutlined />, label: 'Онбординг' },
     { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
   ];
