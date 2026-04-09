@@ -23,8 +23,8 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const menuItems: MenuProps['items'] = [
     { key: '/', icon: <DashboardOutlined />, label: 'Дашборд' },
     { key: '/clients', icon: <TeamOutlined />, label: 'Клиенты' },
-    { key: '/chats', icon: <MessageOutlined />, label: 'Чаты' },
-    { key: '/internal-chat', icon: <ToolOutlined />, label: 'Тех. чат' },
+    { key: '/chats', icon: <MessageOutlined />, label: 'Чаты', badge: 3 },
+    { key: '/internal-chat', icon: <ToolOutlined />, label: 'Технический чат' },
     { key: '/onboarding', icon: <BookOutlined />, label: 'Онбординг' },
     { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
   ];
@@ -70,7 +70,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
-          PolyRouter
+          FlippiFlop
         </div>
 
         {/* Меню */}
@@ -109,7 +109,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           }}
         >
           <div style={{ fontSize: '16px', fontWeight: '500' }}>
-            Единая система коммуникаций
+            Flex-N-Roll  CRM
           </div>
 
           <Space size="large">

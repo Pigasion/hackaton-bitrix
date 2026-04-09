@@ -87,7 +87,7 @@ const mockMessagesData: Record<string, any[]> = {
     {
       id: 'm3',
       chatId: '1',
-      text: 'Добрый день, какой статус по тиражу визиток?',
+      text: 'Давайте бумагу, пусть будет в формате  40х30 мм.',
       direction: 'incoming' as const,
       timestamp: '2026-04-09T10:45:00',
       status: 'read' as const,
