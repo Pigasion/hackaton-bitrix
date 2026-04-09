@@ -1,10 +1,11 @@
 // src/pages/Onboarding.tsx
-import { useState } from 'react';
-import { Steps, Button, Card, Row, Col, Progress, List, Badge, Tag, Alert, Space, Result, Typography, Divider } from 'antd';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Steps, Button, Card, Row, Col, Progress, List, Badge, Tag, Alert, Space, Result, Typography, Divider, Statistic } from 'antd';
 import { CheckCircleOutlined, PhoneOutlined, MessageOutlined, TeamOutlined, FileTextOutlined, StarOutlined, RocketOutlined, BookOutlined } from '@ant-design/icons';
 import { AppButton, AppCard, PageHeader } from '@/components/UI';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const onboardingSteps = [
   { title: 'Знакомство с системой', description: 'Изучи интерфейс PolyRouter', icon: <BookOutlined />, content: { tasks: ['Изучи структуру меню', 'Пойми, где находятся уведомления', 'Разберись с цветовой индикацией'], tip: '💡 Совет: начни с Дашборда' } },
@@ -23,12 +24,19 @@ const completedTasks = [
 ];
 
 function Onboarding() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
 
   const next = () => {
-    if (currentStep < onboardingSteps.length - 1) setCurrentStep(currentStep + 1);
-    else setCompleted(true);
+    if (currentStep < onboardingSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      setCompleted(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+    }
   };
 
   const prev = () => { if (currentStep > 0) setCurrentStep(currentStep - 1); };
@@ -38,8 +46,11 @@ function Onboarding() {
   if (completed) {
     return (
       <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center', padding: '40px' }}>
-        <Result status="success" title="Поздравляем! 🎉" subTitle="Вы успешно прошли онбординг"
-                extra={[<AppButton key="dashboard" href="/">Перейти на Дашборд</AppButton>, <AppButton key="certificate" variant="default" icon={<StarOutlined />}>Получить сертификат</AppButton>]} />
+        <Result
+          status="success"
+          title="Поздравляем! 🎉"
+          subTitle="Вы успешно прошли онбординг. Перенаправление..."
+        />
         <AppCard title="📊 Ваш результат" style={{ marginTop: '32px', textAlign: 'left' }}>
           <Row gutter={[16, 16]}>
             <Col span={8}><Statistic title="Пройдено шагов" value={onboardingSteps.length} suffix={`/ ${onboardingSteps.length}`} /></Col>
@@ -53,10 +64,16 @@ function Onboarding() {
 
   return (
     <div>
-      <PageHeader title={<><RocketOutlined style={{ marginRight: '12px', color: '#0052cc' }} />Онбординг нового менеджера</>} description="Пошаговое руководство для быстрого старта работы в PolyRouter" />
+      <PageHeader
+        title={<><RocketOutlined style={{ marginRight: '12px', color: '#0052cc' }} />Онбординг нового менеджера</>}
+        description="Пошаговое руководство для быстрого старта работы в PolyRouter"
+      />
 
       <AppCard style={{ marginBottom: '24px' }}>
-        <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}><span style={{ fontWeight: 500 }}>Прогресс обучения</span><span style={{ color: '#0052cc', fontWeight: 600 }}>{Math.round(progressPercent)}%</span></div>
+        <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontWeight: 500 }}>Прогресс обучения</span>
+          <span style={{ color: '#0052cc', fontWeight: 600 }}>{Math.round(progressPercent)}%</span>
+        </div>
         <Progress percent={progressPercent} strokeColor={{ '0%': '#0052cc', '100%': '#52c41a' }} showInfo={false} />
       </AppCard>
 
@@ -65,17 +82,43 @@ function Onboarding() {
           <Steps direction="vertical" current={currentStep} items={onboardingSteps.map((step) => ({ title: step.title, description: step.description, icon: step.icon }))} />
         </Col>
         <Col xs={24} lg={16}>
-          <AppCard title={<Space>{currentStepData.icon}<span>{currentStepData.title}</span></Space>} extra={<Tag color="blue">Шаг {currentStep + 1} из {onboardingSteps.length}</Tag>} style={{ minHeight: '400px' }}>
+          <AppCard
+            title={<Space>{currentStepData.icon}<span>{currentStepData.title}</span></Space>}
+            extra={<Tag color="blue">Шаг {currentStep + 1} из {onboardingSteps.length}</Tag>}
+            style={{ minHeight: '400px' }}
+          >
             <Alert message={currentStepData.content.tip} type="info" showIcon style={{ marginBottom: '24px' }} />
             <Title level={5}>Задачи для выполнения:</Title>
-            <List dataSource={currentStepData.content.tasks} renderItem={(task, index) => (<List.Item><Space><Badge count={index + 1} style={{ backgroundColor: '#0052cc' }} /><span>{task}</span></Space></List.Item>)} />
+            <List dataSource={currentStepData.content.tasks} renderItem={(task, index) => (
+              <List.Item>
+                <Space>
+                  <Badge count={index + 1} style={{ backgroundColor: '#0052cc' }} />
+                  <span>{task}</span>
+                </Space>
+              </List.Item>
+            )} />
             <Divider />
             <Title level={5}>Ваши достижения:</Title>
-            <List dataSource={completedTasks} renderItem={(task) => (<List.Item><Space>{task.done ? <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '18px' }} /> : <div style={{ width: 18, height: 18, border: '2px solid #d9d9d9', borderRadius: '50%' }} />}<span style={{ textDecoration: task.done ? 'line-through' : 'none', color: task.done ? '#999' : 'inherit' }}>{task.text}</span></Space></List.Item>)} />
+            <List dataSource={completedTasks} renderItem={(task) => (
+              <List.Item>
+                <Space>
+                  {task.done ? (
+                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
+                  ) : (
+                    <div style={{ width: 18, height: 18, border: '2px solid #d9d9d9', borderRadius: '50%' }} />
+                  )}
+                  <span style={{ textDecoration: task.done ? 'line-through' : 'none', color: task.done ? '#999' : 'inherit' }}>
+                    {task.text}
+                  </span>
+                </Space>
+              </List.Item>
+            )} />
           </AppCard>
           <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
             <AppButton variant="default" onClick={prev} disabled={currentStep === 0} size="large">Назад</AppButton>
-            <AppButton onClick={next} size="large" icon={currentStep === onboardingSteps.length - 1 ? <StarOutlined /> : undefined}>{currentStep === onboardingSteps.length - 1 ? 'Завершить обучение' : 'Далее'}</AppButton>
+            <AppButton onClick={next} size="large" icon={currentStep === onboardingSteps.length - 1 ? <StarOutlined /> : undefined}>
+              {currentStep === onboardingSteps.length - 1 ? 'Завершить обучение' : 'Далее'}
+            </AppButton>
           </div>
         </Col>
       </Row>

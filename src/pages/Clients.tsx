@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   Table, Input, Button, Select, Tag, Avatar, Popconfirm, Modal, Form,
-  DatePicker, Typography, Row, Col, Statistic, Tooltip, Dropdown, Space,
+  DatePicker, Typography, Row, Col, Statistic, Tooltip, Dropdown, Space, message,
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, FilterOutlined, ExportOutlined,
@@ -12,21 +12,10 @@ import {
 } from '@ant-design/icons';
 import type { Client, ClientType, ClientStatus } from '@/types/client';
 import { AppButton, AppInput, StatusBadge, AppCard, PageHeader, EmptyState } from '@/components/UI';
+import { useClientStore } from '@/store/useClientStore'; // ✅ Импортируем стор
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
-
-// 🔹 Мок-данные (без изменений)
-const mockClients: Client[] = [
-  {
-    id: '1', name: 'Иванов Иван Иванович', company: 'ООО "Вектор Принт"',
-    email: 'ivanov@vectorprint.ru', phone: '+7 (999) 000-00-00',
-    status: 'active', type: 'vip', managerId: 'm1', managerName: 'Иванов И.И.',
-    createdAt: '2025-01-15', lastContact: '2026-04-08', totalOrders: 24, totalRevenue: 1250000,
-    tags: ['Полиграфия', 'B2B', 'Постоянный'],
-  },
-  // ... остальные клиенты (сокращено для brevity)
-];
 
 const statusConfig: Record<ClientStatus, { color: string; text: string }> = {
   active: { color: 'green', text: 'Активен' },
@@ -47,8 +36,13 @@ function Clients() {
   const [statusFilter, setStatusFilter] = useState<ClientStatus | 'all'>('all');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [api, contextHolder] = message.useMessage();
 
-  const filteredClients = mockClients.filter((client) => {
+  // ✅ Получаем клиентов и функцию добавления из стора
+  const { clients, addClient } = useClientStore();
+
+  // ✅ Фильтруем клиентов из стора, а не из mockClients
+  const filteredClients = clients.filter((client) => {
     const matchesSearch =
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.company.toLowerCase().includes(searchQuery.toLowerCase());
@@ -57,10 +51,37 @@ function Clients() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const totalClients = mockClients.length;
-  const vipClients = mockClients.filter((c) => c.type === 'vip').length;
-  const activeClients = mockClients.filter((c) => c.status === 'active').length;
-  const totalRevenue = mockClients.reduce((sum, c) => sum + c.totalRevenue, 0);
+  // ✅ Считаем метрики из реальных данных стора
+  const totalClients = clients.length;
+  const vipClients = clients.filter((c) => c.type === 'vip').length;
+  const activeClients = clients.filter((c) => c.status === 'active').length;
+  const totalRevenue = clients.reduce((sum, c) => sum + c.totalRevenue, 0);
+
+  // ✅ Обработчик сохранения
+  const handleSaveClient = (values: any) => {
+    try {
+      addClient({
+        name: values.name,
+        company: values.company,
+        email: values.email,
+        phone: values.phone,
+        status: 'active',
+        type: 'regular',
+        managerId: 'm1',
+        managerName: 'Иванов И.И.',
+        totalOrders: 0,
+        totalRevenue: 0,
+        tags: [],
+        lastContact: new Date().toISOString().split('T')[0],
+      });
+
+      form.resetFields();
+      setIsModalVisible(false);
+      api.success('Клиент успешно добавлен');
+    } catch (error) {
+      api.error('Ошибка при добавлении клиента');
+    }
+  };
 
   const columns = [
     {
@@ -129,6 +150,8 @@ function Clients() {
 
   return (
     <div>
+      {contextHolder}
+
       <PageHeader
         title="👥 Клиенты"
         description="Управление базой клиентов и контрагентов"
@@ -187,23 +210,67 @@ function Clients() {
       {/* Таблица */}
       <AppCard>
         {filteredClients.length > 0 ? (
-          <Table columns={columns} dataSource={filteredClients} rowKey="id" pagination={{ pageSize: 10, showTotal: (total) => `Всего ${total} клиентов` }} rowSelection={{ type: 'checkbox' }} scroll={{ x: 1200 }} />
+          <Table
+            columns={columns}
+            dataSource={filteredClients} // ✅ Используем данные из стора
+            rowKey="id"
+            pagination={{ pageSize: 10, showTotal: (total) => `Всего ${total} клиентов` }}
+            rowSelection={{ type: 'checkbox' }}
+            scroll={{ x: 1200 }}
+          />
         ) : (
-          <EmptyState title="Клиенты не найдены" description="Измените параметры поиска или добавьте нового клиента"
-                      action={<AppButton icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Добавить клиента</AppButton>} />
+          <EmptyState
+            title="Клиенты не найдены"
+            description="Измените параметры поиска или добавьте нового клиента"
+            action={<AppButton icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Добавить клиента</AppButton>}
+          />
         )}
       </AppCard>
 
       {/* Модалка */}
-      <Modal title="Добавление нового клиента" open={isModalVisible} onCancel={() => setIsModalVisible(false)}
-             footer={[<Button key="cancel" onClick={() => setIsModalVisible(false)}>Отмена</Button>, <Button key="submit" type="primary">Сохранить</Button>]} width={700}>
-        <Form form={form} layout="vertical">
+      <Modal
+        title="Добавление нового клиента"
+        open={isModalVisible}
+        onCancel={() => { setIsModalVisible(false); form.resetFields(); }}
+        footer={[
+          <Button key="cancel" onClick={() => { setIsModalVisible(false); form.resetFields(); }}>Отмена</Button>,
+          <Button key="submit" type="primary" onClick={() => form.submit()}>Сохранить</Button>
+        ]}
+        width={700}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSaveClient}
+        >
           <Row gutter={[16, 16]}>
-            <Col span={12}><Form.Item label="ФИО" name="name" rules={[{ required: true, message: 'Введите ФИО' }]}><Input placeholder="Иванов Иван Иванович" /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Компания" name="company" rules={[{ required: true, message: 'Введите компанию' }]}><Input placeholder='ООО "Пример"' /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }, { type: 'email', message: 'Некорректный email' }]}><Input placeholder="email@example.ru" /></Form.Item></Col>
-            <Col span={12}><Form.Item label="Телефон" name="phone" rules={[{ required: true, message: 'Введите телефон' }]}><Input placeholder="+7 (999) 000-00-00" /></Form.Item></Col>
+            <Col span={12}>
+              <Form.Item label="ФИО" name="name" rules={[{ required: true, message: 'Введите ФИО' }]}>
+                <Input placeholder="Иванов Иван Иванович" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Компания" name="company" rules={[{ required: true, message: 'Введите компанию' }]}>
+                <Input placeholder='ООО "Пример"' />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }, { type: 'email', message: 'Некорректный email' }]}>
+                <Input placeholder="email@example.ru" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Телефон" name="phone" rules={[{ required: true, message: 'Введите телефон' }]}>
+                <Input placeholder="+7 (999) 000-00-00" />
+              </Form.Item>
+            </Col>
           </Row>
+
+          <div style={{ marginTop: '16px', padding: '12px', background: '#fafafa', borderRadius: '8px' }}>
+            <Text type="secondary" style={{ fontSize: '11px' }}>
+              💡 Остальные данные (история заказов, предпочтения) будут автоматически заполняться ИИ
+            </Text>
+          </div>
         </Form>
       </Modal>
     </div>

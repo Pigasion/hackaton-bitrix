@@ -1,5 +1,6 @@
 // src/pages/Chats.tsx
 import { useState, useEffect } from 'react';
+import { AIAssistant } from '@/features/Chat/components/AIAssistant';
 import {
   Layout as AntLayout,
   List,
@@ -321,6 +322,10 @@ function Chats() {
                 <Space>
                   <Button icon={<PhoneOutlined />} />
                   <Button icon={<VideoCameraOutlined />} />
+                  <AIAssistant
+                    clientName={selectedChat?.clientName}
+                    isVip={selectedChat?.isVip}
+                  />
                   <Button icon={<MoreOutlined />} />
                 </Space>
               </div>
