@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { MenuProps } from 'antd';
+import { ManagerBadge } from '@/components/UI/ManagerBadge/ManagerBadge';
 
 const { Sider, Content } = Layout;
 
@@ -112,6 +113,9 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           <Space size="large">
+            {/* 🔹 Рейтинг менеджера */}
+            <ManagerBadge />
+
             <Badge count={5} size="small">
               <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
             </Badge>

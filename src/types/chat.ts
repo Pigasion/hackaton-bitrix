@@ -30,6 +30,22 @@ export interface Chat {
   managerName: string;
 }
 
+// src/types/internal-chat.ts
+export interface InternalMessage {
+  id: string;
+  department: 'economist' | 'logistics' | 'production' | 'all';
+  author: string;
+  authorAvatar: string;
+  text: string;
+  timestamp: string;
+  isForwarded?: boolean;
+  forwardedFrom?: {
+    clientId: string;
+    clientName: string;
+    originalMessageId: string;
+  };
+}
+
 export interface ChatState {
   chats: Chat[];
   messages: Record<string, Message[]>;
