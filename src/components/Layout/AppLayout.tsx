@@ -22,6 +22,10 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleProfileClick = () => {
+    navigate('/settings');
+  };
+
   const handleLogout = () => {
     // Очищаем данные авторизации
     localStorage.removeItem('authToken');
@@ -44,7 +48,11 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   ];
 
   const profileMenu: MenuProps['items'] = [
-    { key: 'profile', label: 'Профиль' },
+    {
+      key: 'profile',
+      label: 'Профиль',
+      onClick: handleProfileClick // ← Добавь это
+    },
     {
       key: 'logout',
       label: 'Выйти',

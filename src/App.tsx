@@ -8,6 +8,7 @@ import Chats from '@/pages/Chats';
 import InternalChat from '@/pages/InternalChat';
 import Onboarding from '@/pages/Onboarding';
 import Faq from '@/pages/Faq';
+import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 
 // 🔹 Защита роутов
@@ -32,6 +33,16 @@ function App() {
       <Route path="/internal-chat" element={<ProtectedRoute><AppLayout><InternalChat /></AppLayout></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><AppLayout><Onboarding /></AppLayout></ProtectedRoute>} />
       <Route path="/faq" element={<ProtectedRoute><AppLayout><Faq /></AppLayout></ProtectedRoute>} />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Settings />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* 3. 404 — СТРОГО ПОСЛЕДНИЙ, без защиты (чтобы ловил любые пути) */}
       <Route path="*" element={
